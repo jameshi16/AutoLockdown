@@ -11,3 +11,7 @@ You are tired. You hold your phone protected by the latest ultrasonic fingerprin
 Just like that, all your personal information have been swiftly stolen from your very hands.
 
 With a PIN/Password, the adversary will simply walk away with a phone with little options to access the data within; however, you fumble with your phone in frequent, 5 minute intervals and find it a hassle to unlock your phone every time. With AutoLockdown, you will have a grace period of 5 minutes after you lock your phone to authenticate yourself with fingerprint, after which only a PIN/Password will be allowed.
+
+# Why API 28
+
+Google deprecates `KEYGUARD_DISABLE_FINGERPRINT` with no equivalent properties for our use. Check this thread for more information: https://stackoverflow.com/questions/55184173/setkeyguarddisabledfeaturescomponentname-devicepolicymanager-keyguard-disable
