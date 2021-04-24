@@ -1,0 +1,11 @@
+<resources>
+    <string name="app_name">Auto Lockdown</string>
+    <string name="app_desc">Automatically turns on Lockdown mode after a duration</string>
+    <string name="auto_lockdown">Auto Lockdown</string>
+    <string name="autolockdown_enabled">Enable Auto-Lockdown</string>
+    <string name="autolockdown_duration">Grace period before lockdown</string>
+    <string name="ald_sp_key">alpsp</string>
+    <string name="ald_noti">ald_noti</string>
+    <string name="ald_noti_name">Auto Lockdown</string>
+    <string name="ald_noti_desc">Auto Lockdown is enabled</string>
+</resources>
