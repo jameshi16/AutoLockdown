@@ -1,16 +1,11 @@
 package xyz.codingindex.autolockdown
 
-import android.app.Notification
-import android.app.NotificationChannel
-import android.app.NotificationManager
 import android.content.Context
 import android.content.Intent
-import android.content.IntentFilter
 import android.content.SharedPreferences
 import android.os.IBinder
 import android.service.quicksettings.Tile
 import android.service.quicksettings.TileService
-import android.util.Log
 import androidx.core.content.edit
 
 class AutoLockdownTileService : TileService() {
@@ -33,7 +28,8 @@ class AutoLockdownTileService : TileService() {
     }
 
     override fun onBind(intent: Intent?): IBinder {
-        mSharedPreferences = getSharedPreferences(getString(R.string.ald_sp_key), Context.MODE_PRIVATE)
+        mSharedPreferences =
+            getSharedPreferences(getString(R.string.ald_sp_key), Context.MODE_PRIVATE)
         return super.onBind(intent)
     }
 

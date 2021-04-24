@@ -9,11 +9,6 @@ import android.content.Intent
 import android.content.IntentFilter
 import android.content.SharedPreferences
 import android.os.IBinder
-import android.util.Log
-import androidx.core.app.NotificationCompat
-import androidx.preference.Preference
-import androidx.preference.SwitchPreference
-import java.lang.IllegalArgumentException
 
 class ScreenStatusService : Service(), SharedPreferences.OnSharedPreferenceChangeListener {
     var mScreenStatusReceiver: ScreenStatusReceiver? = null
@@ -25,9 +20,10 @@ class ScreenStatusService : Service(), SharedPreferences.OnSharedPreferenceChang
     }
 
     override fun onCreate() {
-        mSharedPreferences = getSharedPreferences(getString(R.string.ald_sp_key), Context.MODE_PRIVATE).also {
-            it.registerOnSharedPreferenceChangeListener(this)
-        }
+        mSharedPreferences =
+            getSharedPreferences(getString(R.string.ald_sp_key), Context.MODE_PRIVATE).also {
+                it.registerOnSharedPreferenceChangeListener(this)
+            }
 
         mScreenStatusReceiver = ScreenStatusReceiver().also {
             registerReceiver(it, IntentFilter().apply {
@@ -37,21 +33,23 @@ class ScreenStatusService : Service(), SharedPreferences.OnSharedPreferenceChang
             })
         }
 
-        val notificationManager = (getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager)
+        val notificationManager =
+            (getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager)
         mNotificationChannel = NotificationChannel(
             getString(R.string.ald_noti),
             getString(R.string.ald_noti_name),
-            NotificationManager.IMPORTANCE_HIGH).also {
-                notificationManager.createNotificationChannel(it)
-                Notification.Builder(applicationContext, it.id).apply {
-                    this.setContentTitle(getString(R.string.ald_noti_name))
-                    this.setContentText(getString(R.string.ald_noti_desc))
-                    this.setSmallIcon(R.drawable.outline_lock_24)
-                    this.setChannelId(it.id)
-                    this.setOngoing(true)
-                }.build().also {
-                    startForeground(1, it)
-                }
+            NotificationManager.IMPORTANCE_HIGH
+        ).also {
+            notificationManager.createNotificationChannel(it)
+            Notification.Builder(applicationContext, it.id).apply {
+                this.setContentTitle(getString(R.string.ald_noti_name))
+                this.setContentText(getString(R.string.ald_noti_desc))
+                this.setSmallIcon(R.drawable.outline_lock_24)
+                this.setChannelId(it.id)
+                this.setOngoing(true)
+            }.build().also {
+                startForeground(1, it)
+            }
         }
     }
 
@@ -69,7 +67,8 @@ class ScreenStatusService : Service(), SharedPreferences.OnSharedPreferenceChang
             if (mSharedPreferences != null) {
                 mSharedPreferences!!.unregisterOnSharedPreferenceChangeListener(this)
             }
-        } catch (e: IllegalArgumentException) {}
+        } catch (e: IllegalArgumentException) {
+        }
     }
 
     override fun onSharedPreferenceChanged(sharedPreferences: SharedPreferences?, key: String?) {
