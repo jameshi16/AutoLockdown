@@ -18,11 +18,9 @@ import com.h6ah4i.android.preference.NumberPickerPreferenceCompat
 import com.h6ah4i.android.preference.NumberPickerPreferenceDialogFragmentCompat
 import xyz.codingindex.autolockdown.common.Lockdown
 
-class SettingsActivity : AppCompatActivity(), SharedPreferences.OnSharedPreferenceChangeListener {
-    val DEVICE_ADMIN_RQ = 1
-    val RELAUNCH_APP_RQ = 2
-
-    var mSharedPreferences: SharedPreferences? = null
+class SettingsActivity : AppCompatActivity() {
+    private val DEVICE_ADMIN_RQ = 1
+    private val RELAUNCH_APP_RQ = 2
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
@@ -46,9 +44,6 @@ class SettingsActivity : AppCompatActivity(), SharedPreferences.OnSharedPreferen
         super.onCreate(savedInstanceState)
         setContentView(R.layout.settings_activity)
 
-        mSharedPreferences =
-            getSharedPreferences(getString(R.string.ald_sp_key), Context.MODE_PRIVATE)
-
         (getSystemService(Context.DEVICE_POLICY_SERVICE) as DevicePolicyManager?)?.also { mDPM ->
             ComponentName(this, AdminReceiver::class.java).also { mAdminName ->
                 if (!mDPM.isAdminActive(mAdminName)) {
@@ -60,8 +55,11 @@ class SettingsActivity : AppCompatActivity(), SharedPreferences.OnSharedPreferen
                         )
                         startActivityForResult(this, DEVICE_ADMIN_RQ)
 
-                        if (mSharedPreferences != null) {
-                            mSharedPreferences?.edit {
+                        getSharedPreferences(
+                            getString(R.string.ald_sp_key),
+                            Context.MODE_PRIVATE
+                        ).let {
+                            it.edit {
                                 this.putBoolean("enabled", false)
                                 this.apply()
                             }
@@ -78,32 +76,10 @@ class SettingsActivity : AppCompatActivity(), SharedPreferences.OnSharedPreferen
                 .replace(R.id.settings, SettingsFragment())
                 .commit()
         }
-
-        if (mSharedPreferences != null && mSharedPreferences!!.getBoolean("enabled", false)) {
-            startForegroundService(Intent(this, ScreenStatusService::class.java))
-        }
-
-        mSharedPreferences?.registerOnSharedPreferenceChangeListener(this)
     }
 
-    override fun onDestroy() {
-        super.onDestroy()
-
-        getSharedPreferences(getString(R.string.ald_sp_key), Context.MODE_PRIVATE)
-            .unregisterOnSharedPreferenceChangeListener(this)
-    }
-
-    override fun onSharedPreferenceChanged(sharedPreferences: SharedPreferences?, key: String?) {
-        if (sharedPreferences != null && key.equals("enabled")) {
-            if (sharedPreferences.getBoolean(key, false)) {
-                startForegroundService(Intent(this, ScreenStatusService::class.java))
-            } else {
-                Lockdown.release(applicationContext)
-            }
-        }
-    }
-
-    class SettingsFragment : PreferenceFragmentCompat(), Preference.OnPreferenceChangeListener {
+    class SettingsFragment : PreferenceFragmentCompat(), Preference.OnPreferenceChangeListener,
+        SharedPreferences.OnSharedPreferenceChangeListener {
         var enableAutoLockDown: SwitchPreference? = null
         var durationAutoLockDown: NumberPickerPreferenceDialogFragmentCompat? = null
         var mSharedPreferences: SharedPreferences? = null
@@ -112,14 +88,30 @@ class SettingsActivity : AppCompatActivity(), SharedPreferences.OnSharedPreferen
             setPreferencesFromResource(R.xml.root_preferences, rootKey)
             mSharedPreferences =
                 context?.getSharedPreferences(getString(R.string.ald_sp_key), Context.MODE_PRIVATE)
+            mSharedPreferences?.registerOnSharedPreferenceChangeListener(this)
+            val lockdownEnabled = mSharedPreferences?.getBoolean("enabled", false)
 
             enableAutoLockDown = (findPreference("enabled") as SwitchPreference?)?.also {
                 it.onPreferenceChangeListener = this
-                it.setDefaultValue(mSharedPreferences?.getBoolean("enabled", false))
+                it.setDefaultValue(lockdownEnabled)
             }
 
             (findPreference("duration") as Preference?)?.also {
                 it.onPreferenceChangeListener = this
+            }
+
+            if (lockdownEnabled == true) {
+                context?.apply {
+                    this.startForegroundService(Intent(this, ScreenStatusService::class.java))
+                }
+            }
+        }
+
+        override fun onResume() {
+            super.onResume()
+
+            mSharedPreferences?.getBoolean("enabled", false)?.let {
+                enableAutoLockDown?.isChecked = it
             }
         }
 
@@ -162,6 +154,33 @@ class SettingsActivity : AppCompatActivity(), SharedPreferences.OnSharedPreferen
                 }
             }
             return true
+        }
+
+        override fun onSharedPreferenceChanged(
+            sharedPreferences: SharedPreferences?,
+            key: String?
+        ) {
+            if (sharedPreferences != null && key.equals("enabled")) {
+                if (sharedPreferences.getBoolean(key, false)) {
+                    context?.startForegroundService(
+                        Intent(
+                            this.context,
+                            ScreenStatusService::class.java
+                        )
+                    )
+                } else {
+                    context?.let {
+                        Lockdown.release(it)
+                    }
+                }
+            }
+        }
+
+        override fun onDestroy() {
+            super.onDestroy()
+
+            context?.getSharedPreferences(getString(R.string.ald_sp_key), Context.MODE_PRIVATE)
+                ?.unregisterOnSharedPreferenceChangeListener(this)
         }
     }
 }
