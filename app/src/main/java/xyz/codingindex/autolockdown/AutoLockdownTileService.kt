@@ -36,11 +36,19 @@ class AutoLockdownTileService : TileService() {
     override fun onClick() {
         super.onClick()
 
-        if (this.qsTile.state == Tile.STATE_ACTIVE) {
-            this.setEnabled(false)
-        } else {
-            this.setEnabled(true)
-            startForegroundService(Intent(applicationContext, ScreenStatusService::class.java))
+        Runnable {
+            if (this.qsTile.state == Tile.STATE_ACTIVE) {
+                this.setEnabled(false)
+            } else {
+                this.setEnabled(true)
+                startForegroundService(Intent(applicationContext, ScreenStatusService::class.java))
+            }
+        }.also { runnable ->
+            if (this.isLocked) {
+                this.unlockAndRun(runnable)
+            } else {
+                runnable.run()
+            }
         }
     }
 
